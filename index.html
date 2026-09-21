@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bethel International School — Student Council</title>
+<meta name="description" content="Official website of the Bethel International School Student Council, Palo, Leyte.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="js/supabase-client.js"></script>
+<style>
+:root{
+  --navy:#0B1D3A;
+  --royal:#1E4FA3;
+  --sky:#4C7FE0;
+  --gold:#F0B429;
+  --gold-deep:#C98A0B;
+  --ivory:#FAF7EF;
+  --ink:#10162A;
+  --paper:#FFFFFF;
+  --line:#E4E7F0;
+  --shadow: 0 20px 50px -20px rgba(11,29,58,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Manrope',sans-serif;color:var(--ink);background:var(--ivory);line-height:1.55;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Fraunces',serif;color:var(--navy);line-height:1.08;font-weight:600}
+a{text-decoration:none;color:inherit}
+img{max-width:100%;display:block}
+ul{list-style:none}
+.wrap{max-width:1240px;margin:0 auto;padding:0 32px}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+@media(prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 30px;border-radius:100px;font-weight:700;font-size:15px;transition:transform .25s ease, box-shadow .25s ease}
+.btn-gold{background:var(--gold);color:var(--navy);box-shadow:0 12px 28px -8px rgba(240,180,41,.65)}
+.btn-gold:hover{transform:translateY(-3px);box-shadow:0 18px 34px -8px rgba(240,180,41,.75)}
+.btn-outline{border:1.5px solid rgba(255,255,255,.55);color:#fff}
+.btn-outline:hover{background:rgba(255,255,255,.12);transform:translateY(-3px)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:hover{transform:translateY(-3px);box-shadow:0 16px 30px -10px rgba(11,29,58,.5)}
+
+/* ---------- Nav ---------- */
+header{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 0;transition:background .3s ease, box-shadow .3s ease, padding .3s ease}
+header.scrolled{background:rgba(250,247,239,.92);backdrop-filter:blur(10px);box-shadow:0 6px 24px -12px rgba(11,29,58,.25);padding:12px 0}
+.navbar{display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:44px;height:44px;flex:none}
+.brand-text{font-family:'Fraunces',serif;font-weight:600;font-size:16px;color:var(--navy);line-height:1.2}
+.brand-text span{display:block;font-family:'Manrope',sans-serif;font-weight:600;font-size:11px;color:var(--gold-deep);letter-spacing:.03em}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{padding:10px 16px;border-radius:100px;font-weight:600;font-size:14.5px;color:var(--navy);transition:background .2s ease}
+.nav-links a:hover{background:rgba(30,79,163,.08)}
+.nav-cta{margin-left:10px}
+.burger{display:none;width:42px;height:42px;border-radius:12px;background:var(--navy);align-items:center;justify-content:center;flex-direction:column;gap:5px}
+.burger span{width:20px;height:2px;background:#fff;border-radius:2px}
+.mobile-panel{display:none;position:fixed;inset:0;background:var(--navy);z-index:99;padding:100px 32px 40px;flex-direction:column;gap:6px}
+.mobile-panel.open{display:flex}
+.mobile-panel a{color:#fff;font-size:22px;font-family:'Fraunces',serif;padding:14px 4px;border-bottom:1px solid rgba(255,255,255,.12)}
+@media(max-width:900px){.nav-links{display:none}.burger{display:flex}}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;background:linear-gradient(160deg,var(--navy) 0%,#122a52 55%,var(--royal) 130%);padding:180px 0 140px;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;position:relative;z-index:3}
+.hero-eyebrow{color:var(--gold);font-weight:700;font-size:14.5px;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.hero-eyebrow .dot{width:7px;height:7px;background:var(--gold);border-radius:50%}
+.hero h1{color:#fff;font-size:clamp(48px,7vw,86px);letter-spacing:-.01em}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero-sub{color:#EFE9DA;font-size:20px;font-family:'Fraunces',serif;font-weight:500;margin:18px 0 22px;max-width:480px}
+.hero-copy{color:#C9D3E8;font-size:16px;max-width:460px;margin-bottom:36px}
+.hero-actions{display:flex;gap:16px;flex-wrap:wrap}
+.hero-stats{display:flex;gap:34px;margin-top:56px}
+.hero-stats div b{display:block;font-family:'Fraunces',serif;font-size:30px;color:#fff}
+.hero-stats div span{font-size:13px;color:#9FB0D6}
+
+.hero-visual{position:relative;height:520px}
+.blob{position:absolute;border-radius:50%;filter:blur(0px)}
+.blob-gold{width:340px;height:340px;background:radial-gradient(circle at 32% 30%, var(--gold), var(--gold-deep) 75%);top:20px;right:10px;opacity:.95}
+.blob-ring{position:absolute;width:430px;height:430px;border:1.5px solid rgba(255,255,255,.25);border-radius:50%;top:-25px;right:-40px}
+.eagle-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.star{position:absolute;color:var(--gold)}
+.card-float{position:absolute;background:#fff;border-radius:20px;padding:16px 20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;font-size:13.5px;font-weight:700;color:var(--navy)}
+.card-float .ic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.cf-1{top:34px;left:-10px}
+.cf-1 .ic{background:#EAF1FF;color:var(--royal)}
+.cf-2{bottom:60px;left:20px}
+.cf-2 .ic{background:#FFF3D9;color:var(--gold-deep)}
+.cf-3{bottom:-6px;right:40px}
+.cf-3 .ic{background:#EAF1FF;color:var(--royal)}
+
+.hero-curve{position:absolute;bottom:-2px;left:0;width:100%;line-height:0}
+
+/* ---------- generic section spacing ---------- */
+section{padding:120px 0}
+.section-head{max-width:640px;margin-bottom:64px}
+.tag{display:inline-block;font-weight:700;font-size:13.5px;color:var(--royal);background:#EAF1FF;padding:7px 16px;border-radius:100px;margin-bottom:18px}
+.section-head h2{font-size:clamp(32px,4vw,46px)}
+.section-head p{margin-top:16px;font-size:16.5px;color:#4A5573;max-width:560px}
+
+/* ---------- About ---------- */
+.about{background:var(--paper)}
+.about .wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:70px;align-items:center}
+.about-visual{position:relative;height:460px}
+.about-photo{position:absolute;width:78%;height:100%;border-radius:28px;background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.08) 0 2px, transparent 2px 14px),
+    linear-gradient(150deg, var(--royal), var(--navy));
+  left:0;top:10px;box-shadow:var(--shadow);display:flex;align-items:flex-end;padding:26px;transform:rotate(-4deg)}
+.about-photo span{color:#DCE6FF;font-weight:700;font-size:14px}
+.about-card{position:absolute;background:#fff;border-radius:22px;padding:24px 26px;box-shadow:var(--shadow);width:270px}
+.about-card h4{font-size:18px;margin-bottom:8px}
+.about-card p{font-size:14px;color:#556}
+.ac-mission{right:-30px;top:-10px;border-top:4px solid var(--gold);width:320px}
+.ac-mission p{font-size:12.5px;line-height:1.5}
+.ac-vision{right:10px;bottom:-16px;border-top:4px solid var(--royal)}
+.about-body h2{font-size:clamp(30px,3.6vw,42px);margin-bottom:20px}
+.about-body p{color:#465073;font-size:16px;margin-bottom:16px;max-width:520px}
+.about-list{display:grid;gap:14px;margin-top:26px}
+.about-list li{display:flex;gap:14px;align-items:flex-start;font-weight:600;color:var(--navy);font-size:15px}
+.about-list .ic{width:30px;height:30px;border-radius:9px;background:#FFF3D9;color:var(--gold-deep);display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px}
+
+/* ---------- Officers ---------- */
+.officers{background:var(--ivory)}
+.officer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.officer-card{background:#fff;border-radius:24px;padding:26px 22px 30px;text-align:center;box-shadow:0 14px 34px -18px rgba(11,29,58,.22);transition:transform .3s ease, box-shadow .3s ease;position:relative}
+.officer-card:hover{transform:translateY(-8px);box-shadow:0 26px 46px -18px rgba(11,29,58,.32)}
+.officer-card.lead{grid-column:span 3;display:grid;grid-template-columns:200px 1fr;text-align:left;align-items:center;gap:28px;padding:32px;background:linear-gradient(120deg,var(--navy),#16305c)}
+.officer-card.lead h3, .officer-card.lead .role{color:#fff}
+.officer-card.lead p{color:#C9D3E8}
+.officer-card.lead .ophoto{border-radius:20px}
+.ophoto{width:100%;aspect-ratio:1/1;border-radius:50%;background:linear-gradient(150deg,#D7E2FA,#9FB6E6);margin:0 auto 18px;display:flex;align-items:center;justify-content:center;color:#5776b0;font-size:12px;font-weight:700}
+.officer-card.lead .ophoto{width:200px;height:200px;margin:0;background:linear-gradient(150deg,var(--gold),var(--gold-deep));color:#5b3b00}
+.officer-card h3{font-size:18px;margin-bottom:4px}
+.officer-card .role{color:var(--gold-deep);font-weight:700;font-size:13px;text-transform:none;margin-bottom:10px;display:block}
+.officer-card.lead .role{color:var(--gold)}
+.officer-card p{font-size:13.5px;color:#667}
+@media(max-width:900px){.officer-grid{grid-template-columns:repeat(2,1fr)}.officer-card.lead{grid-column:span 2;grid-template-columns:1fr;text-align:center}.officer-card.lead .ophoto{margin:0 auto}}
+@media(max-width:560px){.officer-grid{grid-template-columns:1fr}.officer-card.lead{grid-column:span 1}}
+
+/* ---------- News ---------- */
+.news{background:#fff}
+.news-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:26px}
+.news-side{display:grid;gap:26px}
+.news-card{border-radius:24px;overflow:hidden;background:var(--ivory);box-shadow:0 10px 26px -18px rgba(11,29,58,.25);transition:transform .3s ease}
+.news-card:hover{transform:translateY(-6px)}
+.news-media{aspect-ratio:16/10;background:linear-gradient(135deg,var(--sky),var(--royal));position:relative;display:flex;align-items:center;justify-content:center;color:#DCE6FF;font-weight:700;font-size:13px}
+.news-card.feature .news-media{aspect-ratio:16/9}
+.news-body{padding:22px 24px 26px}
+.news-meta{display:flex;gap:12px;align-items:center;font-size:12.5px;font-weight:700;color:var(--royal);margin-bottom:10px}
+.news-meta .d{color:#8892AC;font-weight:600}
+.news-card h3{font-size:20px;margin-bottom:8px}
+.news-card.feature h3{font-size:25px}
+.news-card p{color:#5A6480;font-size:14px;margin-bottom:14px}
+.news-link{font-weight:700;font-size:13.5px;color:var(--navy);display:inline-flex;align-items:center;gap:6px}
+.news-side .news-body{padding:18px 20px 22px}
+.news-side .news-media{aspect-ratio:16/9}
+
+/* ---------- Article modal ---------- */
+.article-modal{position:fixed;inset:0;background:rgba(11,29,58,.55);backdrop-filter:blur(3px);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:60px 20px;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .25s ease}
+.article-modal.open{opacity:1;pointer-events:auto}
+.article-modal-inner{background:#fff;border-radius:26px;max-width:720px;width:100%;padding:40px 40px 50px;position:relative;box-shadow:0 40px 90px -20px rgba(11,29,58,.5);transform:translateY(16px);transition:transform .25s ease}
+.article-modal.open .article-modal-inner{transform:translateY(0)}
+.article-close{position:absolute;top:18px;right:18px;width:38px;height:38px;border-radius:50%;background:var(--ivory);color:var(--navy);font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center}
+.article-close:hover{background:var(--gold)}
+.article-media{width:100%;aspect-ratio:16/9;border-radius:18px;overflow:hidden;margin-bottom:22px;background:linear-gradient(135deg,var(--sky),var(--royal))}
+.article-media.hidden{display:none}
+.article-media img{width:100%;height:100%;object-fit:cover}
+.article-meta{display:flex;gap:12px;font-size:13px;font-weight:700;color:var(--royal);margin-bottom:10px}
+.article-meta .d{color:#8892AC;font-weight:600}
+.article-modal h2{font-size:28px;margin-bottom:18px}
+.article-body p{color:#465073;font-size:15.5px;margin-bottom:14px;line-height:1.7}
+@media(max-width:640px){.article-modal-inner{padding:30px 22px 40px}}
+
+/* ---------- Events ---------- */
+.events{background:var(--ivory)}
+.event-row{display:grid;grid-template-columns:110px 1fr auto;gap:26px;align-items:center;padding:26px 8px;border-top:1px solid var(--line)}
+.event-row:last-child{border-bottom:1px solid var(--line)}
+.event-date{background:var(--navy);border-radius:18px;padding:14px 10px;text-align:center;color:#fff}
+.event-date b{display:block;font-family:'Fraunces',serif;font-size:28px;line-height:1}
+.event-date span{font-size:11px;color:var(--gold);font-weight:700}
+.event-info h3{font-size:19px;margin-bottom:6px}
+.event-info p{font-size:13.5px;color:#6a7392}
+.event-meta{display:flex;gap:16px;flex-wrap:wrap}
+.event-meta span{font-size:13px;color:#556;font-weight:600;display:flex;align-items:center;gap:6px}
+@media(max-width:700px){.event-row{grid-template-columns:80px 1fr}.event-row .btn{grid-column:span 2;justify-self:start;margin-top:6px}}
+
+/* ---------- Gallery ---------- */
+.gallery{background:#fff}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:34px}
+.filter-pill{padding:10px 20px;border-radius:100px;font-weight:700;font-size:13.5px;border:1.5px solid var(--line);color:#556;transition:all .2s ease}
+.filter-pill.active,.filter-pill:hover{background:var(--navy);border-color:var(--navy);color:#fff}
+.masonry{columns:4 220px;column-gap:18px}
+.g-tile{break-inside:avoid;margin-bottom:18px;border-radius:20px;overflow:hidden;position:relative;box-shadow:0 10px 24px -16px rgba(11,29,58,.3);transition:transform .3s ease}
+.g-tile:hover{transform:translateY(-5px)}
+.g-tile .gph{width:100%;display:flex;align-items:center;justify-content:center;color:#DCE6FF;font-weight:700;font-size:12.5px;text-align:center;padding:14px}
+.g-tile .overlay{position:absolute;inset:0;background:linear-gradient(to top, rgba(11,29,58,.82), transparent 55%);display:flex;align-items:flex-end;padding:16px;opacity:0;transition:opacity .3s ease}
+.g-tile:hover .overlay{opacity:1}
+.overlay span{color:#fff;font-weight:700;font-size:14px}
+.g-tile.h1 .gph{height:420px;background:linear-gradient(150deg,var(--gold),var(--gold-deep))}
+.g-tile.h2 .gph{height:260px;background:linear-gradient(150deg,var(--royal),var(--navy))}
+.g-tile.h3 .gph{height:190px;background:linear-gradient(150deg,var(--sky),var(--royal))}
+.g-tile.h4 .gph{height:230px;background:linear-gradient(150deg,#7C8FC7,var(--navy))}
+.g-tile.h5 .gph{height:160px;background:linear-gradient(150deg,var(--gold-deep),#8a5c05)}
+.g-tile.hidden{display:none}
+
+/* ---------- Programs ---------- */
+.programs{background:var(--ivory)}
+.programs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.prog-card{border-radius:24px;padding:32px 26px;background:#fff;box-shadow:0 12px 28px -18px rgba(11,29,58,.22);position:relative;overflow:hidden;transition:transform .3s ease}
+.prog-card:hover{transform:translateY(-8px)}
+.prog-card .bar{position:absolute;top:0;left:0;width:100%;height:6px}
+.prog-card:nth-child(1) .bar{background:var(--gold)}
+.prog-card:nth-child(2) .bar{background:var(--royal)}
+.prog-card:nth-child(3) .bar{background:var(--sky)}
+.prog-card:nth-child(4) .bar{background:var(--gold-deep)}
+.prog-ic{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.prog-card:nth-child(1) .prog-ic{background:#FFF3D9;color:var(--gold-deep)}
+.prog-card:nth-child(2) .prog-ic{background:#EAF1FF;color:var(--royal)}
+.prog-card:nth-child(3) .prog-ic{background:#EEF2FF;color:var(--sky)}
+.prog-card:nth-child(4) .prog-ic{background:#FFF3D9;color:var(--gold-deep)}
+.prog-card h3{font-size:20px;margin-bottom:10px}
+.prog-card p{font-size:14px;color:#5A6480}
+@media(max-width:900px){.programs-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.programs-grid{grid-template-columns:1fr}}
+
+/* ---------- Testimonial ---------- */
+.testimonial{background:linear-gradient(150deg,var(--navy),#132c58);position:relative;overflow:hidden}
+.testimonial .wrap{max-width:820px;text-align:center;position:relative;z-index:2}
+.quote-mark{font-family:'Fraunces',serif;font-size:120px;color:var(--gold);line-height:1;opacity:.9;margin-bottom:-30px}
+.testimonial p.quote{font-family:'Fraunces',serif;font-size:clamp(22px,3vw,32px);color:#fff;font-weight:500;line-height:1.4}
+.t-stars{color:var(--gold);margin-top:26px;font-size:20px;letter-spacing:4px}
+.t-name{margin-top:18px;color:#C9D3E8;font-weight:700}
+.t-name span{display:block;font-weight:500;font-size:13px;color:#8493B8}
+.t-dots{display:flex;gap:9px;justify-content:center;margin-top:30px}
+.t-dots button{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.3)}
+.t-dots button.active{background:var(--gold);width:22px;border-radius:6px}
+
+/* ---------- Social ---------- */
+.social{background:var(--paper);text-align:center}
+.social h2{font-size:clamp(28px,4vw,40px);margin-bottom:14px}
+.social p{color:#5A6480;margin-bottom:36px}
+.social-actions{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+.social-btn{display:flex;align-items:center;gap:12px;padding:16px 30px;border-radius:100px;font-weight:700;color:#fff;transition:transform .25s ease}
+.social-btn:hover{transform:translateY(-4px)}
+.sb-fb{background:linear-gradient(120deg,#1E4FA3,#0B1D3A)}
+.sb-ig{background:linear-gradient(120deg,#F0B429,#C98A0B)}
+
+/* ---------- Contact ---------- */
+.contact{background:var(--ivory)}
+.contact .wrap{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+.contact-map{height:380px;border-radius:26px;background:
+    linear-gradient(150deg, var(--royal), var(--navy));position:relative;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);text-align:center;transition:transform .25s ease}
+.contact-map:hover{transform:translateY(-4px)}
+.contact-map span{color:#DCE6FF;font-weight:700;font-size:15px;line-height:1.8}
+.contact-list{display:grid;gap:20px}
+.contact-item{display:flex;gap:16px;align-items:flex-start;background:#fff;padding:20px 22px;border-radius:18px;box-shadow:0 10px 24px -18px rgba(11,29,58,.2)}
+.contact-item .ic{width:44px;height:44px;border-radius:13px;background:#EAF1FF;color:var(--royal);display:flex;align-items:center;justify-content:center;flex:none}
+.contact-item h4{font-size:15px;margin-bottom:3px}
+.contact-item p{font-size:14px;color:#5A6480}
+
+/* ---------- Footer ---------- */
+footer{background:var(--navy);color:#B9C4E0;padding:80px 0 30px;position:relative;overflow:hidden}
+.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;padding-bottom:50px;border-bottom:1px solid rgba(255,255,255,.1)}
+.footer-brand .brand-text{color:#fff}
+.footer-brand p{margin-top:16px;font-size:14px;color:#8DA0CE;max-width:280px}
+.footer-social{display:flex;gap:10px;margin-top:20px}
+.footer-social a{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#fff;transition:background .2s ease}
+.footer-social a:hover{background:var(--gold);color:var(--navy)}
+.f-col h4{color:#fff;font-family:'Manrope',sans-serif;font-size:14.5px;margin-bottom:18px}
+.f-col ul{display:grid;gap:11px}
+.f-col a{font-size:14px;color:#9FB0D6;transition:color .2s ease}
+.f-col a:hover{color:var(--gold)}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:26px;font-size:13px;color:#7488B8}
+@media(max-width:900px){.footer-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.footer-grid{grid-template-columns:1fr}}
+
+/* ---------- reveal ---------- */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease, transform .7s ease}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+@media(max-width:1000px){
+  .hero .wrap{grid-template-columns:1fr}
+  .hero-visual{height:360px;margin-top:20px}
+  .about .wrap{grid-template-columns:1fr}
+  .about-visual{height:400px}
+  .ac-mission{width:78%;right:8px;top:-6px}
+  .ac-vision{width:70%;right:8px}
+  .news-grid{grid-template-columns:1fr}
+  .contact .wrap{grid-template-columns:1fr}
+  .officer-card.lead{grid-template-columns:1fr;text-align:center}
+  .officer-card.lead .ophoto{margin:0 auto}
+}
+@media(max-width:640px){
+  section{padding:80px 0}
+  .wrap{padding:0 22px}
+  .masonry{columns:2}
+}
+</style>
+</head>
+<body>
+
+<header id="site-header">
+  <div class="wrap navbar">
+    <a href="#home" class="brand">
+      <span id="navLogoWrap"><svg class="brand-mark" viewBox="0 0 44 44" fill="none">
+        <circle cx="22" cy="22" r="21" fill="#0B1D3A" stroke="#F0B429" stroke-width="1.4"/>
+        <path d="M22 12c-4 3-9 4-13 3 1 6 5 10 13 15 8-5 12-9 13-15-4 1-9 0-13-3z" fill="#F0B429"/>
+        <circle cx="22" cy="20" r="2.4" fill="#0B1D3A"/>
+      </svg></span>
+      <span class="brand-text">Bethel SC<span>Student Council</span></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#officers">Officers</a>
+      <a href="#news">News</a>
+      <a href="#events">Events</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#programs">Programs</a>
+      <a href="#contact">Contact</a>
+      <a href="#about" class="btn btn-navy nav-cta">Student Council</a>
+    </nav>
+    <button class="burger" id="burgerBtn" aria-label="Open menu"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<div class="mobile-panel" id="mobilePanel">
+  <a href="#home">Home</a>
+  <a href="#about">About</a>
+  <a href="#officers">Officers</a>
+  <a href="#news">News</a>
+  <a href="#events">Events</a>
+  <a href="#gallery">Gallery</a>
+  <a href="#programs">Programs</a>
+  <a href="#contact">Contact</a>
+</div>
+
+<section class="hero" id="home">
+  <div class="wrap">
+    <div>
+      <div class="hero-eyebrow"><span class="dot"></span>Bethel International School</div>
+      <h1 id="heroHeadline">BETHEL <em>@25</em></h1>
+      <p class="hero-sub" id="heroSubtext">Faithful then, faithful still.</p>
+      <p class="hero-copy" id="heroCopy">Twenty-five years of Bethel students stepping up — organizing events, representing classmates, and keeping school spirit loud. This is where it all happens.</p>
+      <div class="hero-actions">
+        <a href="#about" class="btn btn-gold">Explore Student Council</a>
+        <a href="#events" class="btn btn-outline">View Events</a>
+      </div>
+      <div class="hero-stats">
+        <div><b>25</b><span>Years of Bethel</span></div>
+        <div><b>9</b><span>SC Officers</span></div>
+        <div><b>30+</b><span>Events a year</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="blob-ring"></div>
+      <div class="blob blob-gold"></div>
+      <div class="eagle-wrap">
+        <svg width="230" height="230" viewBox="0 0 200 200" fill="none">
+          <path d="M100 40c-18 14-42 20-62 16 6 26 24 44 62 66 38-22 56-40 62-66-20 4-44-2-62-16z" fill="#0B1D3A"/>
+          <path d="M100 55c-13 10-30 15-45 12 4 19 17 32 45 48 28-16 41-29 45-48-15 3-32-2-45-12z" fill="#FAF7EF"/>
+          <circle cx="100" cy="70" r="7" fill="#F0B429"/>
+        </svg>
+      </div>
+      <svg class="star" style="top:14px;left:6px" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.9 6.6L22 9.3l-5 4.9 1.3 7.1L12 17.9 5.7 21.3 7 14.2 2 9.3l7.1-.7z"/></svg>
+      <svg class="star" style="bottom:120px;right:26px" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.9 6.6L22 9.3l-5 4.9 1.3 7.1L12 17.9 5.7 21.3 7 14.2 2 9.3l7.1-.7z"/></svg>
+      <div class="card-float cf-1"><div class="ic">📣</div> New announcement</div>
+      <div class="card-float cf-2"><div class="ic">🏆</div> Intramurals week</div>
+      <div class="card-float cf-3"><div class="ic">🦅</div> Bethel @25</div>
+    </div>
+  </div>
+  <svg class="hero-curve" viewBox="0 0 1440 90" preserveAspectRatio="none"><path d="M0,64 C360,110 1080,10 1440,60 L1440,100 L0,100 Z" fill="#FAF7EF"/></svg>
+</section>
+
+<section class="about" id="about">
+  <div class="wrap">
+    <div class="about-visual reveal">
+      <div class="about-photo" id="aboutPhoto"><span>Photo — Student Council in action</span></div>
+      <div class="about-card ac-mission">
+        <h4>Our mission</h4>
+        <p id="aboutMission">Bethel International School aims to develop global citizens who are competent, responsible, possessing an international perspective and equipped with values grounded on biblical truths to serve as leaders and models of change in an interdependent world.</p>
+      </div>
+      <div class="about-card ac-vision">
+        <h4>Our vision</h4>
+        <p id="aboutVision">Preparing Godly leaders for the modern world.</p>
+      </div>
+    </div>
+    <div class="about-body reveal">
+      <span class="tag">Students leading students</span>
+      <h2>The people behind the pep rallies, the polls, and the programs.</h2>
+      <p id="aboutBody1">The Bethel International School Student Council represents the student body across Preschool through Senior High. We plan events, carry student concerns to the administration, and build the kind of school spirit that makes Bethel feel like home.</p>
+      <p id="aboutBody2">Every officer here was elected by students, for students — and every program we run starts with one question: what does Bethel need this year?</p>
+      <ul class="about-list" id="aboutFeatures"></ul>
+    </div>
+  </div>
+</section>
+
+<section class="officers" id="officers">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Meet the council</span>
+      <h2>Your Student Council officers</h2>
+      <p>Nine students, elected by the student body, working across every part of school life.</p>
+    </div>
+    <div class="officer-grid" id="officerGrid"></div>
+  </div>
+</section>
+
+<section class="news" id="news">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Latest from Bethel</span>
+      <h2>News & announcements</h2>
+      <p>What's happening around campus this month.</p>
+    </div>
+    <div class="news-grid" id="newsGrid"></div>
+  </div>
+</section>
+
+<div class="article-modal" id="articleModal">
+  <div class="article-modal-inner">
+    <button class="article-close" id="articleClose" aria-label="Close">×</button>
+    <div class="article-media hidden" id="articleMedia"></div>
+    <div class="article-meta"><span id="articleTag"></span><span class="d" id="articleDate"></span></div>
+    <h2 id="articleTitle"></h2>
+    <div class="article-body" id="articleBody"></div>
+  </div>
+</div>
+
+<section class="events" id="events">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Mark your calendar</span>
+      <h2>Upcoming events</h2>
+      <p>Everything the council has planned for the rest of the term.</p>
+    </div>
+    <div id="eventList"></div>
+  </div>
+</section>
+
+<section class="gallery" id="gallery">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Life at Bethel</span>
+      <h2>Photo gallery</h2>
+      <p>Moments from around campus, sorted by activity.</p>
+    </div>
+    <div class="filters" id="filterBar"></div>
+    <div class="masonry" id="galleryGrid"></div>
+  </div>
+</section>
+
+<section class="programs" id="programs">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="tag">Academic programs</span>
+      <h2>Every stage of a Bethel education</h2>
+      <p>From Preschool to Senior High — one campus, one community, every step of the way.</p>
+    </div>
+    <div class="programs-grid" id="programsGrid"></div>
+  </div>
+</section>
+
+<section class="testimonial">
+  <div class="wrap">
+    <div class="quote-mark">"</div>
+    <p class="quote reveal" id="testimonialQuote">Running for Student Council taught me more about actually listening to people than any class ever did. Bethel gave us the room to try, mess up, and get better at it.</p>
+    <div class="t-stars" id="testimonialStars">★★★★★</div>
+    <div class="t-name" id="testimonialName">Officer Name<span id="testimonialRole">Grade 11, Peace Officer</span></div>
+    <div class="t-dots" id="testimonialDots"></div>
+  </div>
+</section>
+
+<section class="social">
+  <div class="wrap">
+    <h2>Keep up with Bethel.</h2>
+    <p>Follow the council for announcements, event reminders, and behind-the-scenes moments.</p>
+    <div class="social-actions">
+      <a id="socialFb" href="https://www.facebook.com/bethel.IS.sc" target="_blank" rel="noopener" class="social-btn sb-fb">📘 Facebook</a>
+      <a id="socialIg" href="https://www.instagram.com/bethel.sc/?hl=en" target="_blank" rel="noopener" class="social-btn sb-ig">📸 Instagram</a>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <a id="contactMapLink" href="#" target="_blank" rel="noopener" class="contact-map reveal"><span id="contactMapLabel">📍 Tabuan National Hwy, Palo, Leyte<br><span style="font-weight:600;opacity:.8">Tap to open in Google Maps</span></span></a>
+    <div class="reveal">
+      <span class="tag">Get in touch</span>
+      <h2 style="margin-bottom:22px">Reach the Student Council</h2>
+      <div class="contact-list">
+        <div class="contact-item"><div class="ic">✉️</div><div><h4>Email</h4><p id="contactEmail">secretary@bethel.edu.ph</p></div></div>
+        <div class="contact-item"><div class="ic">📞</div><div><h4>Phone</h4><p id="contactPhone">+1 559-909-3455</p></div></div>
+        <div class="contact-item"><div class="ic">🏫</div><div><h4>School</h4><p>Bethel International School</p></div></div>
+        <div class="contact-item"><div class="ic">📍</div><div><h4>Address</h4><p id="contactAddress">Tabuan National Hwy, Palo, Leyte</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#home" class="brand"><span id="footerLogoWrap"><svg class="brand-mark" viewBox="0 0 44 44" fill="none"><circle cx="22" cy="22" r="21" fill="#132c58" stroke="#F0B429" stroke-width="1.4"/><path d="M22 12c-4 3-9 4-13 3 1 6 5 10 13 15 8-5 12-9 13-15-4 1-9 0-13-3z" fill="#F0B429"/><circle cx="22" cy="20" r="2.4" fill="#0B1D3A"/></svg></span><span class="brand-text">Bethel SC<span style="color:#F0B429">Student Council</span></span></a>
+        <p>The official student council of Bethel International School, Palo, Leyte. Bethel @25 — faithful then, faithful still.</p>
+        <div class="footer-social">
+          <a id="footerFb" href="https://www.facebook.com/bethel.IS.sc" target="_blank" rel="noopener">f</a>
+          <a id="footerIg" href="https://www.instagram.com/bethel.sc/?hl=en" target="_blank" rel="noopener">ig</a>
+        </div>
+      </div>
+      <div class="f-col">
+        <h4>Explore</h4>
+        <ul><li><a href="#about">About</a></li><li><a href="#officers">Officers</a></li><li><a href="#programs">Programs</a></li><li><a href="#gallery">Gallery</a></li></ul>
+      </div>
+      <div class="f-col">
+        <h4>Updates</h4>
+        <ul><li><a href="#news">News</a></li><li><a href="#events">Events</a></li></ul>
+      </div>
+      <div class="f-col">
+        <h4>Contact</h4>
+        <ul><li><a href="#contact" id="footerEmail">secretary@bethel.edu.ph</a></li><li><a href="#contact" id="footerAddress">Tabuan National Hwy, Palo, Leyte</a></li></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Bethel International School Student Council. All rights reserved.</span>
+      <span>Bethel @25 — faithful then, faithful still.</span>
+    </div>
+  </div>
+</footer>
+<script>
+const client=window.bethelSupabase;
+function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+
+/* ---------- fallback sample content (shown until real content is published) ---------- */
+function defaultContent(){
+  return {
+    branding:{logo:''},
+    hero:{headlineMain:'BETHEL',headlineAccent:'@25',subtext:'Faithful then, faithful still.',copy:"Twenty-five years of Bethel students stepping up — organizing events, representing classmates, and keeping school spirit loud. This is where it all happens."},
+    about:{mission:'Bethel International School aims to develop global citizens who are competent, responsible, possessing an international perspective and equipped with values grounded on biblical truths to serve as leaders and models of change in an interdependent world.',vision:'Preparing Godly leaders for the modern world.',body1:'The Bethel International School Student Council represents the student body across Preschool through Senior High. We plan events, carry student concerns to the administration, and build the kind of school spirit that makes Bethel feel like home.',body2:'Every officer here was elected by students, for students — and every program we run starts with one question: what does Bethel need this year?',features:['Represents every grade level, Preschool to SHS','Plans school-wide events and activities','Runs outreach and community programs','Keeps students informed through news and updates'],photo:''},
+    officers:[
+      {name:'Jillian Reyna',position:'President',bio:'Leads the council and represents the student body to the administration.',photo:''},
+      {name:'Kairos Baloro',position:'Vice President',bio:'Supports the President and steps in to lead when needed.',photo:''},
+      {name:'Rianne Khloe Uy',position:'Secretary',bio:'Keeps records, minutes, and official SC communications.',photo:''},
+      {name:'Angel Pamat',position:'Treasurer',bio:"Manages the council's funds and event budgets.",photo:''},
+      {name:'Xyza Adan',position:'Auditor',bio:'Reviews spending and keeps the council accountable.',photo:''},
+      {name:'Chino Garado',position:'Internal P.I.O.',bio:'Handles announcements and communication within the school.',photo:''},
+      {name:'Summer Aika Borja',position:'External P.I.O.',bio:"Manages the council's social media and outside communications.",photo:''},
+      {name:'Alexa Francisco',position:'Peace Officer 1',bio:'Helps keep events safe, orderly, and on schedule.',photo:''},
+      {name:'Zanjhie Doyola',position:'Peace Officer 2',bio:'Works alongside Peace Officer 1 at council events.',photo:''}
+    ],
+    news:[
+      {tag:'Announcement',date:'September 18, 2026',title:'Buwan ng Wika week wraps up with a bang',excerpt:"Students from every grade level joined this year's Buwan ng Wika celebration, capped off by a spoken-word contest judged by the SC officers themselves.",fullBody:'',coverImage:'',published:true,feature:true},
+      {tag:'Elections',date:'Sept 10',title:'SC office hours now open every Wednesday',excerpt:'',fullBody:'',coverImage:'',published:true},
+      {tag:'Outreach',date:'Sept 2',title:'Coastal cleanup drive gets 120 volunteers',excerpt:'',fullBody:'',coverImage:'',published:true}
+    ],
+    events:[
+      {name:'Intramurals Opening Ceremony',date:'2026-10-02',time:'8:00 AM',venue:'Bethel Covered Court',registrationLink:'',desc:'Parade of athletes, flag raising, and the lighting of the intramurals torch.',published:true},
+      {name:'Leadership Training for Class Officers',date:'2026-10-14',time:'1:00 PM',venue:'Multipurpose Hall',registrationLink:'',desc:'A half-day workshop for newly elected class officers, run by the SC.',published:true},
+      {name:'Outreach Day: Coastal Cleanup',date:'2026-10-29',time:'6:30 AM',venue:'Palo Baywalk',registrationLink:'',desc:'Student volunteers team up with local partners for a morning cleanup drive.',published:true}
+    ],
+    gallery:{
+      categories:['Student Council Activities','Buwan ng Wika','Leadership Activities','Outreach & Community','Other Events'],
+      items:[
+        {cat:'Student Council Activities',size:'h1',label:'SC General Assembly',photo:''},
+        {cat:'Buwan ng Wika',size:'h2',label:'Spoken word finals',photo:''},
+        {cat:'Outreach & Community',size:'h3',label:'Coastal cleanup',photo:''},
+        {cat:'Leadership Activities',size:'h4',label:'Officer training day',photo:''},
+        {cat:'Other Events',size:'h5',label:'Foundation day',photo:''},
+        {cat:'Student Council Activities',size:'h3',label:'Election week',photo:''},
+        {cat:'Buwan ng Wika',size:'h4',label:'Costume parade',photo:''},
+        {cat:'Outreach & Community',size:'h2',label:'Tree planting',photo:''}
+      ]
+    },
+    programs:[
+      {name:'Preschool',icon:'🧸',description:'A warm, play-based start where young learners build confidence, curiosity, and their first friendships.'},
+      {name:'Elementary',icon:'✏️',description:'A strong academic foundation paired with character formation, from Grade 1 through Grade 6.'},
+      {name:'Junior High School',icon:'📚',description:'Grades 7 to 10 — broadening subjects, growing independence, and early leadership opportunities.'},
+      {name:'Senior High School',icon:'🎓',description:'Grades 11 and 12, preparing students for college, careers, and life beyond Bethel.'}
+    ],
+    testimonials:[{quote:'Running for Student Council taught me more about actually listening to people than any class ever did. Bethel gave us the room to try, mess up, and get better at it.',name:'Officer Name',role:'Grade 11, Peace Officer',rating:5}],
+    contact:{phone:'+1 559-909-3455',email:'secretary@bethel.edu.ph',address:'Tabuan National Hwy, Palo, Leyte',mapLink:'https://www.google.com/maps?ll=11.187774,125.001293&z=14&t=m&hl=en-US&gl=US&mapclient=embed&cid=16631209661483525416',facebook:'https://www.facebook.com/bethel.IS.sc',instagram:'https://www.instagram.com/bethel.sc/?hl=en'}
+  };
+}
+
+/* merge published data over defaults so any field the admin hasn't touched yet still shows something */
+function merge(base,extra){
+  if(!extra||typeof extra!=='object') return base;
+  const out=Array.isArray(base)?[]:{...base};
+  for(const k in base){
+    if(extra[k]===undefined) continue;
+    if(Array.isArray(base[k])) out[k]=Array.isArray(extra[k])?extra[k]:base[k];
+    else if(typeof base[k]==='object'&&base[k]!==null) out[k]=merge(base[k],extra[k]);
+    else out[k]=extra[k];
+  }
+  return out;
+}
+
+function renderBranding(b){
+  if(b.logo){
+    const img=`<img src="${esc(b.logo)}" style="width:44px;height:44px;border-radius:50%;object-fit:cover">`;
+    document.getElementById('navLogoWrap').innerHTML=img;
+    document.getElementById('footerLogoWrap').innerHTML=img;
+  }
+}
+function renderHero(h){
+  document.getElementById('heroHeadline').innerHTML=esc(h.headlineMain)+' <em>'+esc(h.headlineAccent)+'</em>';
+  document.getElementById('heroSubtext').textContent=h.subtext;
+  document.getElementById('heroCopy').textContent=h.copy;
+}
+function renderAbout(a){
+  document.getElementById('aboutMission').textContent=a.mission;
+  document.getElementById('aboutVision').textContent=a.vision;
+  document.getElementById('aboutBody1').textContent=a.body1;
+  document.getElementById('aboutBody2').textContent=a.body2;
+  document.getElementById('aboutFeatures').innerHTML=(a.features||[]).map(f=>`<li><span class="ic">✓</span> ${esc(f)}</li>`).join('');
+  if(a.photo) document.getElementById('aboutPhoto').style.background=`url('${esc(a.photo)}') center/cover no-repeat`;
+}
+function renderOfficers(list){
+  document.getElementById('officerGrid').innerHTML=(list||[]).map((o,i)=>`
+    <div class="officer-card reveal ${i===0?'lead':''}">
+      <div class="ophoto">${o.photo?`<img src="${esc(o.photo)}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:'Photo'}</div>
+      <div>
+        <span class="role">${esc(o.position)}</span>
+        <h3>${esc(o.name)}</h3>
+        <p>${esc(o.bio)}</p>
+      </div>
+    </div>`).join('');
+}
+let newsStore=[];
+function renderNews(list){
+  const visible=(list||[]).filter(n=>n.published!==false);
+  newsStore=visible;
+  if(!visible.length){document.getElementById('newsGrid').innerHTML='';return;}
+  const feature=visible.find(n=>n.feature)||visible[0];
+  const featureIdx=visible.indexOf(feature);
+  const rest=visible.filter(n=>n!==feature).slice(0,2);
+  const featureHtml=`<div class="news-card feature reveal">
+    <div class="news-media">${feature.coverImage?`<img src="${esc(feature.coverImage)}" style="width:100%;height:100%;object-fit:cover">`:'Cover photo'}</div>
+    <div class="news-body">
+      <div class="news-meta"><span>${esc(feature.tag)}</span><span class="d">${esc(feature.date)}</span></div>
+      <h3>${esc(feature.title)}</h3>
+      <p>${esc(feature.excerpt)}</p>
+      <a href="#" class="news-link" data-news-idx="${featureIdx}">Read the full story →</a>
+    </div>
+  </div>`;
+  const sideHtml=`<div class="news-side">${rest.map(n=>{const idx=visible.indexOf(n);return `
+    <div class="news-card reveal">
+      <div class="news-media">${n.coverImage?`<img src="${esc(n.coverImage)}" style="width:100%;height:100%;object-fit:cover">`:'Photo'}</div>
+      <div class="news-body">
+        <div class="news-meta"><span>${esc(n.tag)}</span><span class="d">${esc(n.date)}</span></div>
+        <h3>${esc(n.title)}</h3>
+        <a href="#" class="news-link" data-news-idx="${idx}">Read more →</a>
+      </div>
+    </div>`;}).join('')}</div>`;
+  document.getElementById('newsGrid').innerHTML=featureHtml+sideHtml;
+}
+function openArticle(idx){
+  const n=newsStore[idx]; if(!n) return;
+  document.getElementById('articleMedia').innerHTML=n.coverImage?`<img src="${esc(n.coverImage)}">`:'';
+  document.getElementById('articleMedia').classList.toggle('hidden',!n.coverImage);
+  document.getElementById('articleTag').textContent=n.tag||'';
+  document.getElementById('articleDate').textContent=n.date||'';
+  document.getElementById('articleTitle').textContent=n.title||'';
+  const body=(n.fullBody&&n.fullBody.trim())?n.fullBody:(n.excerpt||'Full story coming soon.');
+  document.getElementById('articleBody').innerHTML=body.split(/\n{2,}/).map(p=>`<p>${esc(p)}</p>`).join('');
+  document.getElementById('articleModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeArticle(){
+  document.getElementById('articleModal').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('click',e=>{
+  const link=e.target.closest('[data-news-idx]');
+  if(link){e.preventDefault();openArticle(Number(link.dataset.newsIdx));}
+  if(e.target.closest('#articleClose')||e.target.id==='articleModal') closeArticle();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeArticle();});
+function renderEvents(list){
+  const visible=(list||[]).filter(e=>e.published!==false);
+  document.getElementById('eventList').innerHTML=visible.map(e=>{
+    const d=e.date?new Date(e.date+'T00:00:00'):null;
+    const day=d?String(d.getDate()).padStart(2,'0'):'--';
+    const month=d?d.toLocaleString('en-US',{month:'short'}).toUpperCase():'';
+    return `<div class="event-row reveal">
+      <div class="event-date"><b>${day}</b><span>${month}</span></div>
+      <div class="event-info">
+        <h3>${esc(e.name)}</h3>
+        <p>${esc(e.desc)}</p>
+        <div class="event-meta" style="margin-top:8px">
+          <span>🕐 ${esc(e.time)}</span>
+          <span>📍 ${esc(e.venue)}</span>
+        </div>
+      </div>
+      ${e.registrationLink?`<a href="${esc(e.registrationLink)}" target="_blank" rel="noopener" class="btn btn-navy">Details</a>`:'<span></span>'}
+    </div>`;
+  }).join('');
+}
+function renderGallery(g){
+  const cats=['All',...(g.categories||[])];
+  document.getElementById('filterBar').innerHTML=cats.map((c,i)=>`<button class="filter-pill ${i===0?'active':''}" data-cat="${esc(c)}">${esc(c)}</button>`).join('');
+  document.getElementById('galleryGrid').innerHTML=(g.items||[]).map(p=>`
+    <div class="g-tile ${p.size||'h3'}" data-cat="${esc(p.cat)}">
+      <div class="gph" ${p.photo?`style="background:url('${esc(p.photo)}') center/cover no-repeat"`:''}>${p.photo?'':'Photo'}</div>
+      <div class="overlay"><span>${esc(p.label)}</span></div>
+    </div>`).join('');
+  document.querySelectorAll('.filter-pill').forEach(btn=>btn.onclick=()=>{
+    document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat=btn.dataset.cat;
+    document.querySelectorAll('.g-tile').forEach(t=>t.classList.toggle('hidden', cat!=='All' && t.dataset.cat!==cat));
+  });
+}
+function renderPrograms(list){
+  document.getElementById('programsGrid').innerHTML=(list||[]).map(p=>`
+    <div class="prog-card reveal"><div class="bar"></div>
+      <div class="prog-ic">${esc(p.icon)}</div>
+      <h3>${esc(p.name)}</h3>
+      <p>${esc(p.description)}</p>
+    </div>`).join('');
+}
+let testimonialList=[]; let testimonialIdx=0; let testimonialTimer=null;
+function showTestimonialSlide(i){
+  const t=testimonialList[i]; if(!t) return;
+  testimonialIdx=i;
+  document.getElementById('testimonialQuote').textContent=t.quote;
+  document.getElementById('testimonialStars').textContent='★'.repeat(Math.max(1,Math.min(5,Number(t.rating)||5)));
+  document.getElementById('testimonialName').childNodes[0].textContent=t.name+' ';
+  document.getElementById('testimonialRole').textContent=t.role;
+  document.querySelectorAll('#testimonialDots button').forEach((b,bi)=>b.classList.toggle('active',bi===i));
+}
+function renderTestimonial(list){
+  testimonialList=(list&&list.length)?list:[{quote:'',name:'',role:'',rating:5}];
+  document.getElementById('testimonialDots').innerHTML=testimonialList.length>1
+    ? testimonialList.map((_,i)=>`<button data-t-dot="${i}" class="${i===0?'active':''}" aria-label="Show testimonial ${i+1}"></button>`).join('')
+    : '';
+  showTestimonialSlide(0);
+  if(testimonialTimer) clearInterval(testimonialTimer);
+  if(testimonialList.length>1){
+    testimonialTimer=setInterval(()=>showTestimonialSlide((testimonialIdx+1)%testimonialList.length),6000);
+  }
+}
+document.addEventListener('click',e=>{
+  const dot=e.target.closest('[data-t-dot]');
+  if(dot){showTestimonialSlide(Number(dot.dataset.tDot));if(testimonialTimer)clearInterval(testimonialTimer);}
+});
+function renderContact(c){
+  document.getElementById('contactEmail').textContent=c.email;
+  document.getElementById('contactPhone').textContent=c.phone;
+  document.getElementById('contactAddress').textContent=c.address;
+  document.getElementById('footerEmail').textContent=c.email;
+  document.getElementById('footerAddress').textContent=c.address;
+  if(c.mapLink){
+    document.getElementById('contactMapLink').href=c.mapLink;
+    document.getElementById('contactMapLabel').innerHTML='📍 '+esc(c.address)+'<br><span style="font-weight:600;opacity:.8">Tap to open in Google Maps</span>';
+  }
+  if(c.facebook){document.getElementById('socialFb').href=c.facebook;document.getElementById('footerFb').href=c.facebook;}
+  if(c.instagram){document.getElementById('socialIg').href=c.instagram;document.getElementById('footerIg').href=c.instagram;}
+}
+
+function renderAll(content){
+  renderBranding(content.branding);
+  renderHero(content.hero);
+  renderAbout(content.about);
+  renderOfficers(content.officers);
+  renderNews(content.news);
+  renderEvents(content.events);
+  renderGallery(content.gallery);
+  renderPrograms(content.programs);
+  renderTestimonial(content.testimonials);
+  renderContact(content.contact);
+  // (re)apply scroll-reveal to freshly injected elements
+  document.querySelectorAll('.reveal').forEach(el=>{
+    if(!el.classList.contains('in')) revealObserver.observe(el);
+  });
+}
+
+const revealObserver=new IntersectionObserver(entries=>entries.forEach(e=>{
+  if(e.isIntersecting){e.target.classList.add('in');revealObserver.unobserve(e.target)}
+}),{threshold:.15});
+
+async function loadPublished(){
+  const fallback=defaultContent();
+  if(!client){ renderAll(fallback); return; }
+  try{
+    const {data,error}=await client.from('site_content').select('published').eq('id',1).single();
+    if(error||!data||!data.published){ renderAll(fallback); return; }
+    renderAll(merge(fallback,data.published));
+  }catch(e){ renderAll(fallback); /* only shown if Supabase is genuinely unreachable */ }
+}
+
+// header scroll state
+const header=document.getElementById('site-header');
+window.addEventListener('scroll',()=>header.classList.toggle('scrolled',window.scrollY>30));
+
+// mobile nav
+const burger=document.getElementById('burgerBtn'), panel=document.getElementById('mobilePanel');
+burger.onclick=()=>panel.classList.toggle('open');
+panel.querySelectorAll('a').forEach(a=>a.onclick=()=>panel.classList.remove('open'));
+
+loadPublished();
+</script>
+</body>
+</html>
