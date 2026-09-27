@@ -352,16 +352,12 @@ footer{background:var(--navy);color:#B9C4E0;padding:80px 0 30px;position:relativ
       <div class="blob-ring"></div>
       <div class="blob blob-gold"></div>
       <div class="eagle-wrap">
-        <svg width="230" height="230" viewBox="0 0 200 200" fill="none">
-          <path d="M100 40c-18 14-42 20-62 16 6 26 24 44 62 66 38-22 56-40 62-66-20 4-44-2-62-16z" fill="#0B1D3A"/>
-          <path d="M100 55c-13 10-30 15-45 12 4 19 17 32 45 48 28-16 41-29 45-48-15 3-32-2-45-12z" fill="#FAF7EF"/>
-          <circle cx="100" cy="70" r="7" fill="#F0B429"/>
-        </svg>
+        <img src="images/logo.png" alt="Bethel International School logo" style="width:260px;height:260px;border-radius:50%;box-shadow:0 25px 60px -15px rgba(11,29,58,.5);object-fit:cover">
       </div>
       <svg class="star" style="top:14px;left:6px" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.9 6.6L22 9.3l-5 4.9 1.3 7.1L12 17.9 5.7 21.3 7 14.2 2 9.3l7.1-.7z"/></svg>
       <svg class="star" style="bottom:120px;right:26px" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.9 6.6L22 9.3l-5 4.9 1.3 7.1L12 17.9 5.7 21.3 7 14.2 2 9.3l7.1-.7z"/></svg>
       <div class="card-float cf-1"><div class="ic">📣</div> New announcement</div>
-      <div class="card-float cf-2"><div class="ic">🤸</div> Weekly Activites</div>
+      <div class="card-float cf-2"><div class="ic">🤸</div> Weekly Activities</div>
       <div class="card-float cf-3"><div class="ic">🦅</div> Bethel @25</div>
     </div>
   </div>
@@ -529,7 +525,7 @@ function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&
 /* ---------- the site's real content, edited directly here ---------- */
 const SITE_CONTENT={
     hero:{headlineMain:'BETHEL',headlineAccent:'@25',subtext:'Faithful then, faithful still.',copy:"Twenty-five years of Bethel students stepping up — organizing events, representing classmates, and keeping school spirit loud. This is where it all happens."},
-    about:{mission:'Bethel International School aims to develop global citizens who are competent, responsible, possessing an international perspective and equipped with values grounded on biblical truths to serve as leaders and models of change in an interdependent world.',vision:'Preparing Godly leaders for the modern world.',body1:'The Bethel International School Student Council represents the student body across Preschool through Senior High. We plan events, carry student concerns to the administration, and build the kind of school spirit that makes Bethel feel like home.',body2:'Every officer here was elected by students, for students — and every program we run starts with one question: what does Bethel need this year?',features:['Represents every grade level, Preschool to SHS','Plans school-wide events and activities','Runs outreach and community programs','Keeps students informed through news and updates'],photo:''},
+    about:{mission:'Bethel International School aims to develop global citizens who are competent, responsible, possessing an international perspective and equipped with values grounded on biblical truths to serve as leaders and models of change in an interdependent world.',vision:'Preparing Godly leaders for the modern world.',body1:'The Bethel International School Student Council serves as a voice for students across Preschool, Elementary, Junior High School, and Senior High School. We help organize school-wide events, support student activities, respond to student concerns, and create opportunities that bring the Bethel community together.',body2:'',features:['Represents every grade level, Preschool to SHS','Plans school-wide events and activities','Runs outreach and community programs','Keeps students informed through news and updates'],photo:''},
     officers:[
       {name:'Jillian Reyna',position:'President',bio:'Leads the council and represents the student body to the administration.',photo:''},
       {name:'Kairos Baloro',position:'Vice President',bio:'Supports the President and steps in to lead when needed.',photo:''},
@@ -539,7 +535,7 @@ const SITE_CONTENT={
       {name:'Chino Garado',position:'Internal P.I.O.',bio:'Handles announcements and communication within the school.',photo:''},
       {name:'Summer Aika Borja',position:'External P.I.O.',bio:"Manages the council's social media and outside communications.",photo:''},
       {name:'Alexa Francisco',position:'Peace Officer 1',bio:'Helps keep events safe, orderly, and on schedule.',photo:''},
-      {name:'Zanjhie Doyola',position:'Peace Officer 2',bio:'Helps maintain order and promote a safe, respectful, and environment for students.',photo:''}
+      {name:'Zanjhie Doyola',position:'Peace Officer 2',bio:'Helps maintain order and promote a safe, respectful, and encouraging environment for students.',photo:''}
     ],
     news:[
       {tag:'Announcement',date:'September 18, 2026',title:'Buwan ng Wika week wraps up with a bang',excerpt:"Students from every grade level joined this year's Buwan ng Wika celebration, capped off by a spoken-word contest judged by the SC officers themselves.",fullBody:'',coverImage:'',published:true,feature:true},
@@ -580,12 +576,14 @@ function renderHero(h){
   document.getElementById('heroCopy').textContent=h.copy;
 }
 function renderAbout(a){
-  document.getElementById('aboutMission').textContent=a.mission;
-  document.getElementById('aboutVision').textContent=a.vision;
-  document.getElementById('aboutBody1').textContent=a.body1;
-  document.getElementById('aboutBody2').textContent=a.body2;
-  document.getElementById('aboutFeatures').innerHTML=(a.features||[]).map(f=>`<li><span class="ic">✓</span> ${esc(f)}</li>`).join('');
-  if(a.photo) document.getElementById('aboutPhoto').style.background=`url('${esc(a.photo)}') center/cover no-repeat`;
+  document.getElementById('aboutMission')?.replaceChildren(a.mission);
+  document.getElementById('aboutVision')?.replaceChildren(a.vision);
+  document.getElementById('aboutBody1')?.replaceChildren(a.body1);
+  document.getElementById('aboutBody2')?.replaceChildren(a.body2||'');
+  const featuresEl=document.getElementById('aboutFeatures');
+  if(featuresEl) featuresEl.innerHTML=(a.features||[]).map(f=>`<li><span class="ic">✓</span> ${esc(f)}</li>`).join('');
+  const photoEl=document.getElementById('aboutPhoto');
+  if(photoEl && a.photo) photoEl.style.background=`url('${esc(a.photo)}') center/cover no-repeat`;
 }
 function renderOfficers(list){
   document.getElementById('officerGrid').innerHTML=(list||[]).map((o,i)=>`
@@ -731,15 +729,21 @@ function renderContact(c){
 }
 
 function renderAll(content){
-  renderHero(content.hero);
-  renderAbout(content.about);
-  renderOfficers(content.officers);
-  renderNews(content.news);
-  renderEvents(content.events);
-  renderGallery(content.gallery);
-  renderPrograms(content.programs);
-  renderTestimonial(content.testimonials);
-  renderContact(content.contact);
+  const sections=[
+    ()=>renderHero(content.hero),
+    ()=>renderAbout(content.about),
+    ()=>renderOfficers(content.officers),
+    ()=>renderNews(content.news),
+    ()=>renderEvents(content.events),
+    ()=>renderGallery(content.gallery),
+    ()=>renderPrograms(content.programs),
+    ()=>renderTestimonial(content.testimonials),
+    ()=>renderContact(content.contact)
+  ];
+  sections.forEach(run=>{
+    try{ run(); }
+    catch(e){ console.warn('A section failed to render (this is usually a missing element ID after an edit):', e); }
+  });
   // (re)apply scroll-reveal to freshly injected elements
   document.querySelectorAll('.reveal').forEach(el=>{
     if(!el.classList.contains('in')) revealObserver.observe(el);
