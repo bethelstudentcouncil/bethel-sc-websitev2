@@ -758,8 +758,13 @@ async function loadSiteContent(){
   try {
     const client = window.bethelSupabase;
     if(!client) throw new Error('Supabase is not configured. Showing built-in fallback content.');
-    const {data, error} = await client.rpc('get_published_site_content');
-    if(error) throw error;
+    let {data, error} = await client.rpc('get_published_site_content');
+    if(error){
+      console.warn('Published-content RPC is not ready yet; trying the legacy published-column read until the database update is applied.', error);
+      const fallback = await client.from('site_content').select('published').eq('id', 1).maybeSingle();
+      if(fallback.error) throw fallback.error;
+      data = fallback.data ? fallback.data.published : null;
+    }
     if(data && typeof data === 'object' && !Array.isArray(data)) content = mergeSiteContent(SITE_CONTENT, data);
   } catch(error) {
     console.error('Could not load published Student Council content from Supabase:', error);
