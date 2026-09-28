@@ -519,6 +519,9 @@ footer{background:var(--navy);color:#B9C4E0;padding:80px 0 30px;position:relativ
     </div>
   </div>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="js/supabase-client.js"></script>
 <script>
 function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
 
@@ -728,8 +731,45 @@ function renderContact(c){
   if(c.instagram){document.getElementById('socialIg').href=c.instagram;document.getElementById('footerIg').href=c.instagram;}
 }
 
+function renderBranding(branding){
+  const logo = branding && typeof branding.logo === 'string' && branding.logo.trim()
+    ? branding.logo.trim()
+    : 'images/logo.png';
+  document.querySelectorAll('img[alt="Bethel International School logo"]').forEach(img => { img.src = logo; });
+}
+
+function mergeSiteContent(defaults, saved){
+  if(saved === null || saved === undefined) return defaults;
+  if(Array.isArray(defaults)) return Array.isArray(saved) ? saved : defaults;
+  if(defaults && typeof defaults === 'object' && !Array.isArray(defaults)){
+    if(!saved || typeof saved !== 'object' || Array.isArray(saved)) return defaults;
+    const merged = {...defaults};
+    Object.keys(saved).forEach(key => {
+      merged[key] = Object.prototype.hasOwnProperty.call(defaults, key)
+        ? mergeSiteContent(defaults[key], saved[key]) : saved[key];
+    });
+    return merged;
+  }
+  return saved;
+}
+
+async function loadSiteContent(){
+  let content = SITE_CONTENT;
+  try {
+    const client = window.bethelSupabase;
+    if(!client) throw new Error('Supabase is not configured. Showing built-in fallback content.');
+    const {data, error} = await client.rpc('get_published_site_content');
+    if(error) throw error;
+    if(data && typeof data === 'object' && !Array.isArray(data)) content = mergeSiteContent(SITE_CONTENT, data);
+  } catch(error) {
+    console.error('Could not load published Student Council content from Supabase:', error);
+  }
+  renderAll(content);
+}
+
 function renderAll(content){
   const sections=[
+    ()=>renderBranding(content.branding),
     ()=>renderHero(content.hero),
     ()=>renderAbout(content.about),
     ()=>renderOfficers(content.officers),
@@ -763,7 +803,7 @@ const burger=document.getElementById('burgerBtn'), panel=document.getElementById
 burger.onclick=()=>panel.classList.toggle('open');
 panel.querySelectorAll('a').forEach(a=>a.onclick=()=>panel.classList.remove('open'));
 
-renderAll(SITE_CONTENT);
+loadSiteContent();
 </script>
 </body>
 </html>

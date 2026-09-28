@@ -35,12 +35,28 @@ create table if not exists public.admin_users (
 alter table public.site_content enable row level security;
 alter table public.admin_users enable row level security;
 
--- Anyone (including logged-out visitors) can read site_content, so the
--- public homepage can load published content without logging in.
+-- Only authorized admins can read the full row (including unpublished drafts).
 drop policy if exists "Public can read site_content" on public.site_content;
-create policy "Public can read site_content"
+drop policy if exists "Admins can read site_content" on public.site_content;
+create policy "Admins can read site_content"
   on public.site_content for select
-  using (true);
+  using (exists (
+    select 1 from public.admin_users a where a.user_id = auth.uid()
+  ));
+
+-- Public visitors can retrieve ONLY the published JSON document.
+create or replace function public.get_published_site_content()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce((select published from public.site_content where id = 1), '{}'::jsonb);
+$$;
+
+revoke all on function public.get_published_site_content() from public;
+grant execute on function public.get_published_site_content() to anon, authenticated;
 
 -- Only signed-in admins (present in admin_users) can update site_content.
 drop policy if exists "Admins can update site_content" on public.site_content;
@@ -66,6 +82,10 @@ create policy "Public can view website images"
   using (bucket_id = 'website-images');
 
 drop policy if exists "Signed-in users can upload website images" on storage.objects;
-create policy "Signed-in users can upload website images"
+drop policy if exists "Admins can upload website images" on storage.objects;
+create policy "Admins can upload website images"
   on storage.objects for insert
-  with check (bucket_id = 'website-images' and auth.role() = 'authenticated');
+  with check (
+    bucket_id = 'website-images'
+    and exists (select 1 from public.admin_users a where a.user_id = auth.uid())
+  );

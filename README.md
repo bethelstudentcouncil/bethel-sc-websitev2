@@ -1,28 +1,26 @@
 # Bethel International School — Student Council Website
 
-Official website for the Bethel International School Student Council, Palo, Leyte.
+Official website for the Bethel International School Student Council in Palo, Leyte, Philippines.
 
-Start with `SETUP.md` for exact step-by-step deployment instructions.
+## Project files
 
-## Files
+- `index.html` — public website for news, events, gallery, programs, officers, mission/vision, testimonials, and contact details.
+- `admin.html` — authenticated content-management dashboard.
+- `config.js` — Supabase project URL and browser-safe publishable key.
+- `js/supabase-client.js` — initializes the Supabase browser client.
+- `images/logo.png` — fallback school logo.
+- `supabase/database.sql` — database schema, row-level security policies, image bucket policies, and published-content RPC.
+- `wrangler.jsonc` — Cloudflare Workers static-asset configuration.
+- `SETUP.md` — setup, deployment, and troubleshooting instructions.
 
-- `index.html` — the public website
-- `admin.html` — the admin dashboard (sign in at `/admin.html`)
-- `config.js` — your Supabase Project URL + Publishable key (safe to expose in the browser)
-- `js/supabase-client.js` — initializes the Supabase client from config.js
-- `supabase/database.sql` — reference copy of the database schema (you likely don't need to run this — see the file itself)
+## Content flow
 
-## How content works
-
-- Your Supabase project stores all editable content (hero text, officers, news, events, gallery, programs, testimonials, contact info) as one row in the `site_content` table.
-- Editing anything in `/admin.html` saves it live immediately — there is no separate "draft" step to remember.
-- The public `index.html` reads that same data on every page load, so what you edit in Admin is what visitors see, on every device.
+The admin dashboard stores editable content in `public.site_content`. The public homepage retrieves only the published JSON document using `public.get_published_site_content()`, so anonymous visitors do not need access to the draft field. Admin changes currently publish immediately when saved.
 
 ## Security
 
-Never commit or expose:
-- A Supabase **Secret** or **Service Role** key
-- Your Supabase database password
-- Admin account passwords
+The Supabase publishable key may be used in browser code when row-level security is configured correctly. Never expose a Supabase secret/service-role key, database password, or administrator credentials in this repository.
 
-Only the **Publishable key** belongs in `config.js` — it's protected by Row Level Security on the database side, not by being secret.
+## Deployment
+
+The site is configured for Cloudflare Workers static assets. See `SETUP.md` for the one-time Supabase policy/RPC update and production verification checklist.
