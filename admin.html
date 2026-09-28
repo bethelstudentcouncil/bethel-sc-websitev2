@@ -120,7 +120,7 @@ function migrateLegacy(raw){
 async function loadContent(){
   const {data,error}=await client.from('site_content').select('draft,published,updated_at,published_at,updated_by,published_by').eq('id',1).single();
   if(error) throw error;
-  const original=data.draft||data.published||{};
+  const original=(data.draft && typeof data.draft === 'object' && Object.keys(data.draft).length) ? data.draft : (data.published || {});
   const raw=migrateLegacy(original);
   const migrated = raw.about!==original.about || raw.gallery!==original.gallery;
   content=mergeDefaults(defaultContent(), raw);
