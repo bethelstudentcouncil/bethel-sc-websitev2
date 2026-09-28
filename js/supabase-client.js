@@ -67,6 +67,7 @@
   }
 
   const originalSet = desc.set;
+
   document.addEventListener('click', function (event) {
     const btn = event.target.closest('.filter-pill');
     if (!btn || !fullMarkup) return;
@@ -75,15 +76,20 @@
     setTimeout(renderGalleryView, 0);
   });
 
-  desc.set = function (value) {
-    if (this.id === 'galleryGrid' && !internalUpdate) {
-      fullMarkup = value || '';
-      currentCategory = 'All';
-      expanded = false;
-      ensureControls();
-      renderGalleryView();
-      return;
+  Object.defineProperty(Element.prototype, 'innerHTML', {
+    configurable: desc.configurable,
+    enumerable: desc.enumerable,
+    get: desc.get,
+    set: function (value) {
+      if (this.id === 'galleryGrid' && !internalUpdate) {
+        fullMarkup = value || '';
+        currentCategory = 'All';
+        expanded = false;
+        ensureControls();
+        renderGalleryView();
+        return;
+      }
+      originalSet.call(this, value);
     }
-    originalSet.call(this, value);
-  };
+  });
 })();
