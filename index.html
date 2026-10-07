@@ -483,7 +483,6 @@ footer{background:var(--navy);color:#B9C4E0;padding:80px 0 30px;position:relativ
       <h2 style="margin-bottom:22px">Contact Info:</h2>
       <div class="contact-list">
         <div class="contact-item"><div class="ic">✉️</div><div><h4>Email</h4><p id="contactEmail">secretary@bethel.edu.ph</p></div></div>
-        <div class="contact-item"><div class="ic">📞</div><div><h4>Phone</h4><p id="contactPhone">+1 559-909-3455</p></div></div>
         <div class="contact-item"><div class="ic">🏫</div><div><h4>School</h4><p>Bethel International School</p></div></div>
         <div class="contact-item"><div class="ic">📍</div><div><h4>Address</h4><p id="contactAddress">Tabuan National Hwy, Palo, Leyte</p></div></div>
       </div>
@@ -572,7 +571,7 @@ const SITE_CONTENT={
       {name:'Senior High School',icon:'🎓',description:'Grades 11 and 12, preparing students for college, careers, and life beyond Bethel.'}
     ],
     testimonials:[{quote:'Running for Student Council taught me more about actually listening to people than any class ever did. Bethel gave us the room to try, mess up, and get better at it.',name:'Officer Name',role:'Grade 11, Peace Officer',rating:5}],
-    contact:{phone:'+1 559-909-3455',email:'secretary@bethel.edu.ph',address:'Tabuan National Hwy, Palo, Leyte',mapLink:'https://www.google.com/maps?ll=11.187774,125.001293&z=14&t=m&hl=en-US&gl=US&mapclient=embed&cid=16631209661483525416',facebook:'https://www.facebook.com/bethel.IS.sc',instagram:'https://www.instagram.com/bethel.sc/?hl=en'}
+    contact:{email:'secretary@bethel.edu.ph',address:'Tabuan National Hwy, Palo, Leyte',mapLink:'https://www.google.com/maps?ll=11.187774,125.001293&z=14&t=m&hl=en-US&gl=US&mapclient=embed&cid=16631209661483525416',facebook:'https://www.facebook.com/bethel.IS.sc',instagram:'https://www.instagram.com/bethel.sc/?hl=en'}
 };
 
 function renderHero(h){
@@ -721,7 +720,7 @@ document.addEventListener('click',e=>{
 });
 function renderContact(c){
   document.getElementById('contactEmail').textContent=c.email;
-  document.getElementById('contactPhone').textContent=c.phone;
+  
   document.getElementById('contactAddress').textContent=c.address;
   document.getElementById('footerEmail').textContent=c.email;
   document.getElementById('footerAddress').textContent=c.address;
