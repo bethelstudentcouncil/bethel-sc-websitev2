@@ -103,28 +103,31 @@ async function ensureAdmin(){
   if(error) throw error; return !!data;
 }
 /* convert older content shapes (missionVision, plain gallery array) into the current shape without losing real data */
+function normalizeGallery(g){
+  const fallback=['Student Council Activities','Buwan ng Wika','Leadership Activities','Outreach & Community','Other Events'];
+  const source=Array.isArray(g)?{items:g}:((g&&typeof g==='object')?g:{});
+  const cleanName=v=>String(v||'').trim().replace(/\s+/g,' '); const categories=[]; const seen=new Set();
+  const sourceItems=Array.isArray(source.items)?source.items:(Array.isArray(g)?g:[]);
+  (Array.isArray(source.categories)?source.categories:[]).forEach(v=>{const name=cleanName(v),key=name.toLocaleLowerCase();if(name&&!seen.has(key)){seen.add(key);categories.push(name)}});
+  if(!categories.length) sourceItems.forEach(item=>{const name=cleanName(item.cat||item.category),key=name.toLocaleLowerCase();if(name&&!seen.has(key)){seen.add(key);categories.push(name)}});
+  if(!categories.length) fallback.forEach(v=>categories.push(v));
+  const byKey=new Map(categories.map(c=>[c.toLocaleLowerCase(),c]));
+  const items=sourceItems.map(item=>{const rawCat=cleanName(item.cat||item.category);const cat=byKey.get(rawCat.toLocaleLowerCase())||categories[0];return {label:item.label||item.caption||'',cat,photo:item.photo||'',size:['h1','h2','h3','h4','h5'].includes(item.size)?item.size:(item.tall?'h1':'h3')}});
+  return {categories,items};
+}
 function migrateLegacy(raw){
-  if(!raw||typeof raw!=='object') return raw;
-  const out={...raw};
-  if(raw.missionVision && !raw.about){
-    out.about={mission:raw.missionVision.mission||'',vision:raw.missionVision.vision||'',body1:'',body2:'',photo:'',features:['','','','']};
-  }
-  if(Array.isArray(raw.gallery)){
-    const cats=[...new Set(raw.gallery.map(g=>g.category).filter(Boolean))];
-    out.gallery={
-      categories: cats.length?cats:['Student Council Activities','Buwan ng Wika','Leadership Activities','Outreach & Community','Other Events'],
-      items: raw.gallery.map(g=>({label:g.label||g.caption||'',cat:g.category||cats[0]||'',photo:g.photo||'',size:g.tall?'h1':'h3'}))
-    };
-  }
-  return out;
+  if(!raw||typeof raw!=='object') return raw; const out={...raw};
+  if(raw.missionVision && !raw.about) out.about={mission:raw.missionVision.mission||'',vision:raw.missionVision.vision||'',body1:'',body2:'',photo:'',features:['','','','']};
+  if(raw.gallery) out.gallery=normalizeGallery(raw.gallery); return out;
 }
 async function loadContent(){
   const {data,error}=await client.from('site_content').select('draft,published,updated_at,published_at,updated_by,published_by').eq('id',1).single();
   if(error) throw error;
   const original=(data.draft && typeof data.draft === 'object' && Object.keys(data.draft).length) ? data.draft : (data.published || {});
   const raw=migrateLegacy(original);
-  const migrated = raw.about!==original.about || raw.gallery!==original.gallery;
+  const migrated = raw.about!==original.about || JSON.stringify(raw.gallery)!==JSON.stringify(original.gallery);
   content=mergeDefaults(defaultContent(), raw);
+  content.gallery=normalizeGallery(content.gallery);
   q('#status').textContent=data.published_at?`Last saved: ${new Date(data.published_at).toLocaleString()}`:'Not published yet';
   if(migrated){ await saveDraft(); toast('Updated your site to the new format — nothing was lost'); }
 }
@@ -178,20 +181,24 @@ function galleryEditor(){
     return `<div class="item"><div class="item-head"><div><div class="item-title">${esc(it.label||'Untitled photo')}</div><span class="status">${esc(it.cat||'Uncategorized')}</span></div><div class="item-actions"><button class="ghost" data-move="gallery:${i}:-1">↑</button><button class="ghost" data-move="gallery:${i}:1">↓</button><button class="ghost" data-edit="gallery:${i}">Edit</button><button class="danger" data-delete="gallery:${i}">Delete</button></div></div><div id="edit-gallery-${i}" class="hidden" style="margin-top:14px">${field('Caption','label',it.label||'')}<div class="field"><label>Category</label><select data-key="cat">${selectHtml}</select></div><div class="field"><label>Tile size</label><select data-key="size">${SIZE_OPTIONS.map(([v,l])=>`<option value="${v}" ${it.size===v?'selected':''}>${l}</option>`).join('')}</select></div>${imageField('Photo','photo',it.photo)}<button class="btn primary" data-save-item="gallery:${i}">Save Item</button></div></div>`;
   }).join('');
   return `<div class="panel"><div class="panel-head"><div><h2>Gallery Categories</h2><div class="muted">Add, rename, reorder, or remove the categories visitors can filter by.</div></div><button class="btn gold" data-add-cat="1">+ Add Category</button></div><div class="list">${catChips||'<p class="muted">No categories yet. Add one to start organizing photos.</p>'}</div></div>
-  <div class="panel"><div class="panel-head"><div><h2>Photo Gallery</h2><div class="muted">Select one or more photos to upload them all at once. Each gets added using the first category — edit any of them afterward to fine-tune caption, category, or size.</div></div><button class="btn gold" id="galleryBulkBtn">+ Add Photos</button><input type="file" id="galleryBulkInput" accept="image/*" multiple class="hidden"></div><div class="list">${itemRows||'<p class="muted">No photos yet.</p>'}</div></div>`;
+  <div class="panel"><div class="panel-head"><div><h2>Photo Gallery</h2><div class="muted">Select one or more photos to upload them all at once. Each gets added using the first category — edit any of them afterward to fine-tune caption, category, or size.</div></div><div class="item-actions"><select id="galleryUploadCategory" aria-label="Category for new photos">${cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select><button class="btn gold" id="galleryBulkBtn">+ Add Photos</button></div><input type="file" id="galleryBulkInput" accept="image/*" multiple class="hidden"></div><div class="list">${itemRows||'<p class="muted">No photos yet.</p>'}</div></div>`;
 }
 function wireGalleryBulkUpload(){
-  const btn=q('#galleryBulkBtn'), input=q('#galleryBulkInput');
+  const btn=q('#galleryBulkBtn'), input=q('#galleryBulkInput'), category=q('#galleryUploadCategory');
   if(!btn||!input) return;
+  btn.disabled=!(content.gallery.categories||[]).length;
+  if(!content.gallery.categories.length) btn.title='Add a category before uploading photos';
   btn.onclick=()=>input.click();
   input.onchange=async()=>{
     const files=[...input.files];
     if(!files.length) return;
+    const selectedCategory=category?.value||content.gallery.categories[0];
+    if(!selectedCategory){showMessage('Add a gallery category before uploading photos.','error');return;}
     toast(`Uploading ${files.length} photo${files.length>1?'s':''}…`);
     for(const f of files){
       try{
         const url=await uploadImage(f);
-        content.gallery.items.push({label:f.name.replace(/\.[a-zA-Z0-9]+$/,'').replace(/[-_]+/g,' '),cat:content.gallery.categories[0]||'',photo:url,size:'h3'});
+        content.gallery.items.push({label:f.name.replace(/\.[a-zA-Z0-9]+$/,'').replace(/[-_]+/g,' '),cat:selectedCategory,photo:url,size:'h3'});
       }catch(e){showMessage(e.message,'error');}
     }
     await saveDraft();
@@ -199,9 +206,9 @@ function wireGalleryBulkUpload(){
     toast('Photos added — edit any of them to adjust caption or category');
   };
 }
-function addCategory(){const name=prompt('New category name:');if(!name)return;content.gallery.categories.push(name.trim());saveDraft();showSection('gallery')}
-function renameCategory(i){const old=content.gallery.categories[i];const name=prompt('Rename category:',old);if(!name)return;const trimmed=name.trim();content.gallery.items.forEach(it=>{if(it.cat===old)it.cat=trimmed});content.gallery.categories[i]=trimmed;saveDraft();showSection('gallery')}
-function deleteCategory(i){if(!confirm('Delete this category? Photos already using it will keep their old label but stop showing under this filter.'))return;content.gallery.categories.splice(i,1);saveDraft();showSection('gallery')}
+async function addCategory(){const name=prompt('New category name:');if(!name)return;const trimmed=name.trim().replace(/\s+/g,' ');if(!trimmed)return;if(content.gallery.categories.some(c=>c.toLocaleLowerCase()===trimmed.toLocaleLowerCase())){showMessage('That category already exists.','error');return;}content.gallery.categories.push(trimmed);await saveDraft();showSection('gallery')}
+async function renameCategory(i){const old=content.gallery.categories[i];const name=prompt('Rename category:',old);if(!name)return;const trimmed=name.trim().replace(/\s+/g,' ');if(!trimmed)return;if(content.gallery.categories.some((c,j)=>j!==i&&c.toLocaleLowerCase()===trimmed.toLocaleLowerCase())){showMessage('That category already exists.','error');return;}content.gallery.items.forEach(it=>{if(String(it.cat||it.category||'').trim().toLocaleLowerCase()===old.toLocaleLowerCase())it.cat=trimmed});content.gallery.categories[i]=trimmed;await saveDraft();showSection('gallery')}
+async function deleteCategory(i){const old=content.gallery.categories[i];const affected=content.gallery.items.filter(it=>String(it.cat||it.category||'').trim().toLocaleLowerCase()===old.toLocaleLowerCase());const remaining=content.gallery.categories.filter((_,j)=>j!==i);if(affected.length&&remaining.length===0){showMessage('Add another category or move these photos before deleting the only category.','error');return;}let target='';if(affected.length){target=prompt(`Move ${affected.length} photo(s) from "${old}" to which category?\n\n${remaining.join('\n')}`,remaining[0]);if(target===null)return;target=remaining.find(c=>c.toLocaleLowerCase()===target.trim().toLocaleLowerCase());if(!target){showMessage('Choose one of the listed categories. No photos were moved.','error');return;}}else if(!confirm(`Delete category "${old}"?`))return;affected.forEach(it=>it.cat=target);content.gallery.categories.splice(i,1);await saveDraft();showSection('gallery')}
 function moveCategory(i,dir){const j=i+dir;if(j<0||j>=content.gallery.categories.length)return;[content.gallery.categories[i],content.gallery.categories[j]]=[content.gallery.categories[j],content.gallery.categories[i]];saveDraft();showSection('gallery')}
 
 /* ---------- shared item CRUD ---------- */
