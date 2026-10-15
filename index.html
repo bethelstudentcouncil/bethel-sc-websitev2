@@ -684,8 +684,8 @@ function normalizePublicGallery(g){
 function renderGallery(g){
   const gallery=normalizePublicGallery(g);const cats=['All',...gallery.categories];
   document.getElementById('filterBar').innerHTML=cats.map((c,i)=>`<button class="filter-pill ${i===0?'active':''}" data-cat="${esc(c)}">${esc(c)}</button>`).join('');
-  document.getElementById('galleryGrid').innerHTML=gallery.items.map(p=>`<div class="g-tile ${p.size}" data-cat="${esc(p.cat)}">${p.photo?`<img class="gph gph-photo" src="${esc(p.photo)}" alt="${esc(p.label||'Bethel Student Council gallery photo')}" loading="lazy" decoding="async">`:'<div class="gph">Photo</div>'}<div class="overlay"><span>${esc(p.label)}</span></div></div>`).join('');
-  document.querySelectorAll('.filter-pill').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const cat=btn.dataset.cat;document.querySelectorAll('.g-tile').forEach(t=>t.classList.toggle('hidden',cat!=='All'&&t.dataset.cat!==cat));});
+  document.getElementById('galleryGrid').innerHTML=gallery.items.map(p=>`<div class="g-tile ${p.size}" data-cat="${esc(p.cat)}">${p.photo?`<img class="gph gph-photo" src="${esc(p.photo)}" alt="${esc(p.alt||'Bethel Student Council event photo')}" loading="lazy" decoding="async">`:'<div class="gph">Photo</div>'}</div>`).join('');
+  document.querySelectorAll('.filter-pill').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const cat=String(btn.dataset.cat||'').trim().normalize('NFKC').toLocaleLowerCase();document.querySelectorAll('.g-tile').forEach(t=>{const itemCat=String(t.dataset.cat||'').trim().normalize('NFKC').toLocaleLowerCase();t.classList.toggle('hidden',cat!=='all'&&itemCat!==cat);});});
 }
 function renderPrograms(list){
   document.getElementById('programsGrid').innerHTML=(list||[]).map(p=>`
