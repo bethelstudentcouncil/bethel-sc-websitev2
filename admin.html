@@ -125,8 +125,10 @@ async function loadContent(){
   if(error) throw error;
   const original=(data.draft && typeof data.draft === 'object' && Object.keys(data.draft).length) ? data.draft : (data.published || {});
   const raw=migrateLegacy(original);
-  const migrated = raw.about!==original.about || JSON.stringify(raw.gallery)!==JSON.stringify(original.gallery);
+  const hadLegacyPhone=!!(raw.contact && Object.prototype.hasOwnProperty.call(raw.contact,'phone'));
+  const migrated = raw.about!==original.about || JSON.stringify(raw.gallery)!==JSON.stringify(original.gallery) || hadLegacyPhone;
   content=mergeDefaults(defaultContent(), raw);
+  if(content.contact) delete content.contact.phone;
   content.gallery=normalizeGallery(content.gallery);
   q('#status').textContent=data.published_at?`Last saved: ${new Date(data.published_at).toLocaleString()}`:'Not published yet';
   if(migrated){ await saveDraft(); toast('Updated your site to the new format — nothing was lost'); }
