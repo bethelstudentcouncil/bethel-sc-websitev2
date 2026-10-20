@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Bethel International School — Student Council</title>
 <meta name="description" content="Official website of the Bethel International School Student Council, Palo, Leyte.">
-<link rel="icon" type="image/png" sizes="256x256" href="/favicon.ico">
-<link rel="apple-touch-icon" href="/images/favicon.png?v=20261007">
+<link rel="icon" href="/favicon.ico?v=20261020">
+<link rel="apple-touch-icon" href="/images/favicon.png?v=20261020">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -204,6 +204,11 @@ section{padding:120px 0}
 .g-tile.h4 .gph{height:230px;background:linear-gradient(150deg,#7C8FC7,var(--navy))}
 .g-tile.h5 .gph{height:160px;background:linear-gradient(150deg,var(--gold-deep),#8a5c05)}
 .g-tile.hidden{display:none}
+.gallery-actions{display:flex;justify-content:center;margin-top:28px}
+.gallery-more{padding:12px 24px;border:1.5px solid var(--line);border-radius:100px;background:#fff;color:var(--navy);font-weight:700;font-size:14px;cursor:pointer;transition:background .2s ease,color .2s ease}
+.gallery-more:hover{background:var(--navy);color:#fff}
+.gallery-more:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.gallery-more.hidden{display:none}
 
 /* ---------- Programs ---------- */
 .programs{background:var(--ivory)}
@@ -440,6 +445,7 @@ footer{background:var(--navy);color:#B9C4E0;padding:80px 0 30px;position:relativ
     </div>
     <div class="filters" id="filterBar"></div>
     <div class="masonry" id="galleryGrid"></div>
+    <div class="gallery-actions"><button id="galleryMoreBtn" class="gallery-more hidden" type="button" aria-expanded="false">View all photos</button></div>
   </div>
 </section>
 
@@ -651,22 +657,34 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeArticle();});
 function renderEvents(list){
-  const visible=(list||[]).filter(e=>e.published!==false);
-  document.getElementById('eventList').innerHTML=visible.map(e=>{
-    const d=e.date?new Date(e.date+'T00:00:00'):null;
+  const dateParts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const parts=Object.fromEntries(dateParts.map(part=>[part.type,part.value]));
+  const today=`${parts.year}-${parts.month}-${parts.day}`;
+  const visible=(list||[]).filter(event=>{
+    if(event.published===false) return false;
+    const date=String(event.date||'').trim();
+    return !/^\d{4}-\d{2}-\d{2}$/.test(date)||date>=today;
+  });
+  const container=document.getElementById('eventList');
+  if(!visible.length){
+    container.innerHTML='<p class="muted" style="padding:18px 0">No upcoming events are scheduled right now. Check back for announcements.</p>';
+    return;
+  }
+  container.innerHTML=visible.map(event=>{
+    const d=event.date?new Date(event.date+'T00:00:00'):null;
     const day=d?String(d.getDate()).padStart(2,'0'):'--';
     const month=d?d.toLocaleString('en-US',{month:'short'}).toUpperCase():'';
     return `<div class="event-row reveal">
       <div class="event-date"><b>${day}</b><span>${month}</span></div>
       <div class="event-info">
-        <h3>${esc(e.name)}</h3>
-        <p>${esc(e.desc)}</p>
+        <h3>${esc(event.name)}</h3>
+        <p>${esc(event.desc)}</p>
         <div class="event-meta" style="margin-top:8px">
-          <span>🕐 ${esc(e.time)}</span>
-          <span>📍 ${esc(e.venue)}</span>
+          <span>🕐 ${esc(event.time)}</span>
+          <span>📍 ${esc(event.venue)}</span>
         </div>
       </div>
-      ${e.registrationLink?`<a href="${esc(e.registrationLink)}" target="_blank" rel="noopener" class="btn btn-navy">Details</a>`:'<span></span>'}
+      ${event.registrationLink?`<a href="${esc(event.registrationLink)}" target="_blank" rel="noopener" class="btn btn-navy">Details</a>`:'<span></span>'}
     </div>`;
   }).join('');
 }
@@ -681,11 +699,51 @@ function normalizePublicGallery(g){
   const items=rawItems.map(p=>{const raw=clean(p.cat||p.category);return {...p,cat:lookup.get(raw.toLocaleLowerCase())||categories[0],label:p.label||p.caption||'',size:['h1','h2','h3','h4','h5'].includes(p.size)?p.size:(p.tall?'h1':'h3')}});
   return {categories,items};
 }
+let galleryItems=[];
+let activeGalleryCategory='All';
+let galleryExpanded=false;
+function renderGalleryItems(){
+  const grid=document.getElementById('galleryGrid');
+  const moreButton=document.getElementById('galleryMoreBtn');
+  if(!grid) return;
+  const normalize=value=>String(value??'').trim().normalize('NFKC').toLocaleLowerCase();
+  const filtered=activeGalleryCategory==='All'
+    ? galleryItems
+    : galleryItems.filter(item=>normalize(item.cat)===normalize(activeGalleryCategory));
+  const visible=galleryExpanded?filtered:filtered.slice(0,3);
+  grid.innerHTML=visible.map((item,index)=>{
+    const size=['h1','h2','h3','h4','h5'].includes(item.size)?item.size:'h3';
+    const image=item.photo
+      ? `<img class="gph gph-photo" src="${esc(item.photo)}" alt="${esc(item.alt||'Bethel Student Council event photo')}" loading="${index<3?'eager':'lazy'}" decoding="async">`
+      : '<div class="gph">Photo</div>';
+    return `<div class="g-tile ${size}" data-cat="${esc(item.cat)}">${image}</div>`;
+  }).join('');
+  if(moreButton){
+    moreButton.classList.toggle('hidden',filtered.length<=3);
+    moreButton.textContent=galleryExpanded?'Show fewer photos':`View all ${filtered.length} photos`;
+    moreButton.setAttribute('aria-expanded',String(galleryExpanded));
+  }
+}
 function renderGallery(g){
-  const gallery=normalizePublicGallery(g);const cats=['All',...gallery.categories];
-  document.getElementById('filterBar').innerHTML=cats.map((c,i)=>`<button class="filter-pill ${i===0?'active':''}" data-cat="${esc(c)}">${esc(c)}</button>`).join('');
-  document.getElementById('galleryGrid').innerHTML=gallery.items.map(p=>`<div class="g-tile ${p.size}" data-cat="${esc(p.cat)}">${p.photo?`<img class="gph gph-photo" src="${esc(p.photo)}" alt="${esc(p.alt||'Bethel Student Council event photo')}" loading="lazy" decoding="async">`:'<div class="gph">Photo</div>'}</div>`).join('');
-  document.querySelectorAll('.filter-pill').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const cat=String(btn.dataset.cat||'').trim().normalize('NFKC').toLocaleLowerCase();document.querySelectorAll('.g-tile').forEach(t=>{const itemCat=String(t.dataset.cat||'').trim().normalize('NFKC').toLocaleLowerCase();t.classList.toggle('hidden',cat!=='all'&&itemCat!==cat);});});
+  const gallery=normalizePublicGallery(g);
+  galleryItems=gallery.items;
+  activeGalleryCategory='All';
+  galleryExpanded=false;
+  const categories=['All',...gallery.categories];
+  document.getElementById('filterBar').innerHTML=categories.map((category,index)=>`<button type="button" class="filter-pill ${index===0?'active':''}" data-cat="${esc(category)}" aria-pressed="${index===0?'true':'false'}">${esc(category)}</button>`).join('');
+  document.querySelectorAll('.filter-pill').forEach(button=>button.onclick=()=>{
+    document.querySelectorAll('.filter-pill').forEach(filter=>{
+      const active=filter===button;
+      filter.classList.toggle('active',active);
+      filter.setAttribute('aria-pressed',String(active));
+    });
+    activeGalleryCategory=button.dataset.cat||'All';
+    galleryExpanded=false;
+    renderGalleryItems();
+  });
+  const moreButton=document.getElementById('galleryMoreBtn');
+  if(moreButton) moreButton.onclick=()=>{galleryExpanded=!galleryExpanded;renderGalleryItems();};
+  renderGalleryItems();
 }
 function renderPrograms(list){
   document.getElementById('programsGrid').innerHTML=(list||[]).map(p=>`
@@ -761,13 +819,8 @@ async function loadSiteContent(){
   try {
     const client = window.bethelSupabase;
     if(!client) throw new Error('Supabase is not configured. Showing built-in fallback content.');
-    let {data, error} = await client.rpc('get_published_site_content');
-    if(error){
-      console.warn('Published-content RPC is not ready yet; trying the legacy published-column read until the database update is applied.', error);
-      const fallback = await client.from('site_content').select('published').eq('id', 1).maybeSingle();
-      if(fallback.error) throw fallback.error;
-      data = fallback.data ? fallback.data.published : null;
-    }
+    const {data, error} = await client.rpc('get_published_site_content');
+    if(error) throw error;
     if(data && typeof data === 'object' && !Array.isArray(data)) content = mergeSiteContent(SITE_CONTENT, data);
   } catch(error) {
     console.error('Could not load published Student Council content from Supabase:', error);
